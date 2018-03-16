@@ -1,0 +1,4 @@
+
+	UPDATE tbl_SMA
+	SET [TransType] = 1, [Notes] = ' CALCULATE - NEW MONEY '
+	WHERE [SMAKey] = 207 

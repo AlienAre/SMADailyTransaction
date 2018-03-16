@@ -13,14 +13,14 @@ import pyodbc
 import datetime
 
 ## dd/mm/yyyy format
-print 'Process date is ' + str(time.strftime("%d/%m/%Y"))
+print (time.strftime("%d/%m/%Y"))
 
 startday = dd.getCycleStartDate(date.today())
 endday = dd.getCycleEndDate(date.today())
 #startday = dd.getCycleStartDate(datetime.datetime.strptime(str('2017/11/8'), '%Y/%m/%d'))
 #endday = dd.getCycleEndDate(datetime.datetime.strptime(str('2017/11/8'), '%Y/%m/%d'))
-print 'Cycle start date is ' + str(startday)
-print 'Cycle end date is ' + str(endday)
+print startday
+print endday
 
 filesdir = 'F:\\3-Compensation Programs\\IIROC Compensation\\' + endday.strftime("%Y%m%d")
 
@@ -90,8 +90,8 @@ SMAcashdata['CycleMonth'] = endday.strftime("%Y%m%d")
 #SMA trans do not include revesals, now use SMA cash trans to calculate
 #data frame for Sales Credit upload
 SMAtotal = SMAcashdata.groupby(['CycleMonth', 'Client Servicing Consultant Number'], as_index=False)['Event Gross Amount'].sum()
-SMAtotal['SCAmount'] = SMAtotal['Event Gross Amount'] * 1.0
-SMAtotal['ExchangeRate'] = 1.0
+SMAtotal['SCAmount'] = SMAtotal['Event Gross Amount'] * 0.7
+SMAtotal['ExchangeRate'] = 0.7
 SMAtotal['Description'] = 'SMA Sales Credits ' + SMAtotal['CycleMonth']
 SMAtotal = SMAtotal[['CycleMonth', 'Client Servicing Consultant Number', 'SCAmount', 'Description', 'Event Gross Amount', 'ExchangeRate']]
 #SMAtotal.drop('Event Gross Amount', axis=1, inplace=True)
@@ -142,7 +142,7 @@ dfcslt = dfcslt.merge(dfrate, left_on='Tenure', right_on='Tenure', how='left')
 
 sql = '''SELECT DISTINCT FTransitionalSalesBonusRate.Level AS EarnedAL, FTransitionalSalesBonusRate.Rate AS ALRate FROM FTransitionalSalesBonusRate  WHERE FTransitionalSalesBonusRate.ALYear = ''' + str(endday.year)
 dfALrate = pd.read_sql_query(sql,conn)
-#print sql
+print sql
 print dfALrate
 dfcslt =  dfcslt.merge(dfALrate, left_on='EarnedAL', right_on='EarnedAL', how='left')
 dfcslt['ActualRate'] = 0.00
