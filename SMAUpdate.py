@@ -1,24 +1,33 @@
-import os, re, sys, time, xlrd
+import os, re, sys, time, xlrd, pyodbc, datetime
 from datetime import date
 import fnmatch
 import pandas as pd
 import itertools as it
 from openpyxl import load_workbook
 import myfun as dd
-import pyodbc
-import datetime
 
+#------------ get cycle start date ----------------
+def getStartDate(pdate):
+	if int(pdate.strftime("%d")) > 15:
+		return pdate.replace(day=16)
+	else: 
+		return pdate.replace(day=1)
+#--------------------------------------------------
+		
 ## dd/mm/yyyy format
 print 'Process date is ' + str(time.strftime("%d/%m/%Y"))
+print 'Please enter the cycle end date (mm/dd/yyyy) you want to update:'
 
-startday = dd.getCycleStartDate(date.today())
-endday = dd.getCycleEndDate(date.today())
-#startday = dd.getCycleStartDate(datetime.datetime.strptime(str('2017/11/8'), '%Y/%m/%d'))
-#endday = dd.getCycleEndDate(datetime.datetime.strptime(str('2017/11/8'), '%Y/%m/%d'))
+getcycledate = datetime.datetime.strptime(raw_input(), '%m/%d/%Y')
+#startday = dd.getCycleStartDate(date.today())
+#endday = dd.getCycleEndDate(date.today())
+endday = getcycledate
+startday = getStartDate(getcycledate)
+
 print 'Cycle start date is ' + str(startday)
 print 'Cycle end date is ' + str(endday)
 
-
+#---------- get the updated spreadsheet and read --------
 SMAdata = pd.read_excel('F:\\3-Compensation Programs\\IIROC Compensation\\SMA, FBA Compensation\\SMADaily' + endday.strftime("%Y%m%d") + '.xlsx')
 #print SMAdata.head()
 

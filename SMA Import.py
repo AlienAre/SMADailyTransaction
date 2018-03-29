@@ -12,15 +12,51 @@ import myfun as dd
 import pyodbc
 import datetime
 
+#------------ get cycle start date ----------------
+def getStartDate(pdate):
+	if int(pdate.strftime("%d")) > 15:
+		return pdate.replace(day=16)
+	else: 
+		return pdate.replace(day=1)
+#--------------------------------------------------
+
 ## dd/mm/yyyy format
 print 'Process date is ' + str(time.strftime("%d/%m/%Y"))
+print 'Please enter the cycle end date (mm/dd/yyyy) you want to process:'
 
-startday = dd.getCycleStartDate(date.today())
-endday = dd.getCycleEndDate(date.today())
+#-----------------------------------------------------
+#------- get cycle date ----------------------
+getcycledate = datetime.datetime.strptime(raw_input(), '%m/%d/%Y')
+#startday = dd.getCycleStartDate(date.today())
+#endday = dd.getCycleEndDate(date.today())
 #startday = dd.getCycleStartDate(datetime.datetime.strptime(str('2017/11/8'), '%Y/%m/%d'))
 #endday = dd.getCycleEndDate(datetime.datetime.strptime(str('2017/11/8'), '%Y/%m/%d'))
+endday = getcycledate
+startday = getStartDate(getcycledate)
+
 print 'Cycle start date is ' + str(startday)
 print 'Cycle end date is ' + str(endday)
+#---------------------------------------------
+
+#----------- get SMA daily transactions and AL information ------------
+driver = r"{Microsoft Access Driver (*.mdb, *.accdb)};"
+db_file = r"F:\\3-Compensation Programs\\IIROC Compensation\\SMA, FBA Compensation\\SMA.accdb;"
+user = "admin"
+password = ""
+odbc_conn_str = r"DRIVER={};DBQ={};".format(driver, db_file)
+conn = pyodbc.connect(odbc_conn_str)
+#--------------------------------------------------------------------
+#--------- check latest cycle date in database ----------
+sql = '''SELECT Max(tbl_SMA.CycDate) AS [CycDate] FROM tbl_SMA; '''
+Cdatedf = pd.read_sql_query(sql,conn)
+latestcycledate = Cdatedf.at[(0, 'CycDate')]
+#print type(latestcycledate)
+print 'In database, the latest cycle end date is ' + str(latestcycledate)
+if latestcycledate > endday:
+	print 'It seems that the cycle date in database is later than your cycle date, which means the transactions may already be entered into database. Please type "1", if you want to proceed:'
+	if raw_input() != '1':
+		sys.exit("The process is stopped")	
+#-----------------------------------------------------------------------
 
 filesdir = 'F:\\3-Compensation Programs\\IIROC Compensation\\' + endday.strftime("%Y%m%d")
 
@@ -50,14 +86,9 @@ for sma in SMAlist:
 	
 SMAdata.columns = labels
 SMAdata['Client Company Name'] = SMAdata['Client Company Name'].astype(str).str.replace("'", "")
-
+SMAdata['Event Process Date'] = SMAdata['Event Process Date'].astype(str).str.replace(" 00:00:00", "")
+#print SMAdata.head()
 #---------------------------------------
-driver = r"{Microsoft Access Driver (*.mdb, *.accdb)};"
-db_file = r"F:\\3-Compensation Programs\\IIROC Compensation\\SMA, FBA Compensation\\SMA.accdb;"
-user = "admin"
-password = ""
-odbc_conn_str = r"DRIVER={};DBQ={};".format(driver, db_file)
-
 table = "tbl_SMA"
 columns = '''
 [CycDate],

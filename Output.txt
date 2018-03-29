@@ -1,4 +1,24 @@
 
-	UPDATE tbl_SMA
-	SET [TransType] = 1, [Notes] = ' CALCULATE - NEW MONEY '
-	WHERE [SMAKey] = 207 
+SELECT DISTINCT
+	qry_SMATranswALAll.[CycDate]
+	,qry_SMATranswALAll.[Cslt]
+	,qry_SMATranswALAll.[Name]
+	,qry_SMATranswALAll.[RO]
+	,qry_SMATranswALAll.[ROName]
+	,qry_SMATranswALAll.[TransType]
+	,qry_SMATranswALAll.[Account Number]
+	,qry_SMATranswALAll.[Event Process Date]
+	,qry_SMATranswALAll.[Client Number]
+	,qry_SMATranswALAll.[Client Last Name]
+	,qry_SMATranswALAll.[Client Given Name]
+	,qry_SMATranswALAll.[Event Gross Amount]	
+	,qry_SMATranswALAll.[EarnedAL]
+	,qry_SMATranswALAll.[AdvanceAL]
+	,qry_SMATranswALAll.[Tenure]
+FROM qry_SMATranswALAll
+WHERE ((qry_SMATranswALAll.CycDate) = # 2018-02-28 00:00:00 #)
+ORDER BY 
+	qry_SMATranswALAll.[CycDate]
+	,qry_SMATranswALAll.[Cslt]
+	,qry_SMATranswALAll.[Client Number]
+	,qry_SMATranswALAll.[Account Number];
