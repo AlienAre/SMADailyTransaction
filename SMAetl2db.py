@@ -1,16 +1,12 @@
-import os
-import re
-import sys
-import time
+import os, re, sys, time, xlrd, pyodbc, datetime
 from datetime import date
 import fnmatch
+import numpy as np
 import pandas as pd
 import itertools as it
 from openpyxl import load_workbook
-import xlrd
+from shutil import copyfile
 import myfun as dd
-import pyodbc
-import datetime
 
 #------------ get cycle start date ----------------
 def getStartDate(pdate):
@@ -21,7 +17,7 @@ def getStartDate(pdate):
 #--------------------------------------------------
 
 ## dd/mm/yyyy format
-print 'Process date is ' + str(time.strftime("%d/%m/%Y"))
+print 'Process date is ' + str(time.strftime("%m/%d/%Y"))
 print 'Please enter the cycle end date (mm/dd/yyyy) you want to process:'
 
 #-----------------------------------------------------
@@ -37,6 +33,10 @@ startday = getStartDate(getcycledate)
 print 'Cycle start date is ' + str(startday)
 print 'Cycle end date is ' + str(endday)
 #---------------------------------------------
+
+#----------- backup db first ---------
+copyfile('F:\\3-Compensation Programs\\IIROC Compensation\\SMA, FBA Compensation\\SMA.accdb', 'M:\\bak\\SMA' + str(date.today().strftime("%m%d%Y")) + '.accdb')
+#-------------------------------------
 
 #----------- get SMA daily transactions and AL information ------------
 driver = r"{Microsoft Access Driver (*.mdb, *.accdb)};"
@@ -83,7 +83,11 @@ for sma in SMAlist:
 
 	if not df1.empty:
 		SMAdata = SMAdata.append(df1, ignore_index=True)
-	
+
+#---- if there is no transaction for the cycle, the process should be stopped
+if SMAdata.empty:
+	sys.exit("This is no data for this cycle. Process is stopped")		
+		
 SMAdata.columns = labels
 SMAdata['Client Company Name'] = SMAdata['Client Company Name'].astype(str).str.replace("'", "")
 SMAdata['Event Process Date'] = SMAdata['Event Process Date'].astype(str).str.replace(" 00:00:00", "")
@@ -135,3 +139,5 @@ for row in SMAdata.to_records(index=False):
 	cursor.commit()
 	cursor.close()
 conn.close()
+
+print 'The process is completed successfully'

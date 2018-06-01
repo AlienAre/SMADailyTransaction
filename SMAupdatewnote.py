@@ -15,7 +15,7 @@ def getStartDate(pdate):
 #--------------------------------------------------
 		
 ## dd/mm/yyyy format
-print 'Process date is ' + str(time.strftime("%d/%m/%Y"))
+print 'Process date is ' + str(time.strftime("%m/%d/%Y"))
 print 'Please enter the cycle end date (mm/dd/yyyy) you want to update:'
 
 getcycledate = datetime.datetime.strptime(raw_input(), '%m/%d/%Y')
@@ -59,3 +59,5 @@ for index, row in SMAdata.iterrows():
 	cursor.commit()
 	cursor.close()
 conn.close()
+
+print 'database has been updated successfully'

@@ -16,8 +16,8 @@ def getStartDate(pdate):
 #--------------------------------------------------
 		
 ## dd/mm/yyyy format
-print 'Process date is ' + str(time.strftime("%d/%m/%Y"))
-print 'Please enter the cycle end date (mm/dd/yyyy) you want to output:'
+print 'Process date is ' + str(time.strftime("%m/%d/%Y"))
+print 'Please enter the cycle end date (mm/dd/yyyy) you want to get:'
 
 getcycledate = datetime.datetime.strptime(raw_input(), '%m/%d/%Y')
 #startday = dd.getCycleStartDate(date.today())
@@ -36,24 +36,26 @@ password = ""
 odbc_conn_str = r"DRIVER={};DBQ={};".format(driver, db_file)
 conn = pyodbc.connect(odbc_conn_str)
 
-#sql = '''SELECT * FROM qry_SMATranswAL WHERE CycDate = #''' + str(endday) + '''#'''
 sql = '''
 SELECT DISTINCT
-	qry_SMATranswALAll.[CycDate]
-	,qry_SMATranswALAll.[Cslt]
-	,qry_SMATranswALAll.[Name]
-	,qry_SMATranswALAll.[RO]
-	,qry_SMATranswALAll.[ROName]
+	qry_SMATranswALAll.[SMAKey]
+	,qry_SMATranswALAll.[CycDate]
 	,qry_SMATranswALAll.[TransType]
-	,qry_SMATranswALAll.[Account Number]
-	,qry_SMATranswALAll.[Event Process Date]
-	,qry_SMATranswALAll.[Client Number]
-	,qry_SMATranswALAll.[Client Last Name]
-	,qry_SMATranswALAll.[Client Given Name]
-	,qry_SMATranswALAll.[Event Gross Amount]	
+	,qry_SMATranswALAll.[Event Effective Date]
+	,qry_SMATranswALAll.[Cslt]
 	,qry_SMATranswALAll.[EarnedAL]
 	,qry_SMATranswALAll.[AdvanceAL]
 	,qry_SMATranswALAll.[Tenure]
+	,qry_SMATranswALAll.[Client Number]
+	,qry_SMATranswALAll.[Client Last Name]
+	,qry_SMATranswALAll.[Client Given Name]
+	,qry_SMATranswALAll.[Account Number]
+	,qry_SMATranswALAll.[Event Gross Amount]
+	,qry_SMATranswALAll.[Account Market Value]
+	,qry_SMATranswALAll.[Product IGSI Symbol]
+	,qry_SMATranswALAll.[Event Activity Description]
+	,qry_SMATranswALAll.[Product Description]
+	,qry_SMATranswALAll.[Notes]
 FROM qry_SMATranswALAll
 WHERE ((qry_SMATranswALAll.CycDate) = # ''' + str(endday) + ''' #)
 ORDER BY 
@@ -62,12 +64,9 @@ ORDER BY
 	,qry_SMATranswALAll.[Client Number]
 	,qry_SMATranswALAll.[Account Number];
 '''
-#-------------------------------------	
 #print sql
-#with open("Output.txt", "w") as text_file:
-#	text_file.write(sql)
-#sys.exit("done")	
-#--------------------------------------	
+#sys.exit("done")
+#sql = '''SELECT * FROM qry_SMATranswAL WHERE CycDate = #''' + str(endday) + '''#'''
 Transdf = pd.read_sql_query(sql,conn)
 conn.close()
 #-----------------------------------------------------------------------
@@ -111,24 +110,46 @@ Transdf['New Business'] = Transdf['Event Gross Amount'] * Transdf['NBRate'] * Tr
 #Transdf['Sales Bonus'] = np.where(Transdf['TransType'] == 1, Transdf['Event Gross Amount'] * Transdf['SBRate'], 0.00)
 Transdf['Sales Bonus'] = Transdf['Event Gross Amount'] * Transdf['SBRate'] * Transdf['TransType']
 Transdf['AL Advancing Adj'] = np.where(Transdf['AdvRate'] != 0, (Transdf['Event Gross Amount'] * Transdf['AdvRate'] - Transdf['Sales Bonus']) * Transdf['TransType'], 0.00)
-Transdf['Mark'] = np.where(Transdf['TransType'] == 0, '*', '')
+#Transdf['Mark'] = np.where(Transdf['TransType'] == 0, '*', '')
 
 #----------- Remove unrequired columns ------------
-Transdf.drop(['TransType', 'Tenure', 'Rate', 'ALRate'], axis=1, inplace=True)
-Transdf.rename(columns={'Event Gross Amount': 'Total Contribution'}, inplace=True)
-Transdf = Transdf[['CycDate','Cslt','EarnedAL','Name','RO','ROName','Account Number','Event Process Date','Client Number','Client Last Name', 'Client Given Name', 'Total Contribution','Mark','NBRate','New Business','SBRate','Sales Bonus', 'AdvanceAL','AdvRate','AL Advancing Adj']]
-Transdf.sort_values(['CycDate','Cslt', 'Client Number', 'Account Number', 'Total Contribution'], inplace=True)
+Transdf.drop(['Rate', 'ALRate'], axis=1, inplace=True)
+#Transdf.rename(columns={'Event Gross Amount': 'Total Contribution'}, inplace=True)
+Transdf = Transdf[['SMAKey','CycDate','TransType','Event Effective Date','Cslt','Client Number','Client Last Name','Client Given Name','Account Number','Event Gross Amount','Account Market Value','Tenure','EarnedAL','NBRate','New Business','SBRate','Sales Bonus','AdvanceAL','AdvRate','AL Advancing Adj','Event Activity Description','Product IGSI Symbol','Product Description','Notes']]
+Transdf.sort_values(['CycDate', 'Cslt', 'Client Number', 'Account Number', 'Event Gross Amount'], inplace=True)
 
-#print Transdf#.head()
 #print Transdf.dtypes
 #sys.exit("done")
 
 # Create a Pandas Excel writer using XlsxWriter as the engine.
-writer = pd.ExcelWriter('SMADailyAudit' + endday.strftime("%Y%m%d") + '.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter('SMADaily' + endday.strftime("%Y%m%d") + '.xlsx', engine='xlsxwriter')
 #writer = pd.ExcelWriter('F:\\3-Compensation Programs\\IIROC Compensation\\SMA, FBA Compensation\\SMADaily' + endday.strftime("%Y%m%d") + '.xlsx', engine='xlsxwriter')
 
 # Convert the dataframe to an XlsxWriter Excel object.
 Transdf.to_excel(writer, sheet_name='Sheet1', index=False)
 
+# Get the xlsxwriter workbook and worksheet objects.
+workbook  = writer.book
+worksheet = writer.sheets['Sheet1']
+
+# Add some cell formats.
+formatcslt = workbook.add_format({'bold': True, 'bg_color': '#FFFF00'})
+formatnum = workbook.add_format({'num_format': '#,##0.00', 'bold': True, 'bg_color': '#FFC7CE'})
+formatrate = workbook.add_format({'num_format': '0.00%'})
+format3 = workbook.add_format({'num_format': '#,##0.00'})
+
+# Set the column width and format.
+worksheet.set_column('E:E', 10, formatcslt) #[Cslt]
+worksheet.set_column('I:I', 15) #[Account Number]
+worksheet.set_column('J:J', 18, formatnum) #[Event Gross Amount]
+worksheet.set_column('K:K', 18, format3) #[Account Market Value]
+worksheet.set_column('N:N', 10, formatrate) #[NBRate]
+worksheet.set_column('O:O', 12, formatnum) #[New Business]
+worksheet.set_column('P:P', 10, formatrate) #[SBRate]
+worksheet.set_column('Q:Q', 12, formatnum) #[Sales Bonus]
+
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
+
+print 'output all daily transaction to ' + 'SMADaily' + endday.strftime("%Y%m%d") + '.xlsx'
+
