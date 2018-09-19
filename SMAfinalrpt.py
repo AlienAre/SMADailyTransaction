@@ -23,15 +23,14 @@ import dbquery as dbq
 #------ program starting point --------	
 if __name__=="__main__":		
 	## dd/mm/yyyy format
-	print 'Process date is ' + str(time.strftime("%m/%d/%Y"))
-	print 'Please enter the cycle end date (mm/dd/yyyy) you want to output:'
+	print('Process date is ' + str(time.strftime("%m/%d/%Y")))
 
-	getcycledate = datetime.datetime.strptime(raw_input(), '%m/%d/%Y')
+	getcycledate = datetime.datetime.strptime(input('Please enter the cycle end date (mm/dd/yyyy) you want to output:'), '%m/%d/%Y')
 	endday = getcycledate
 	startday = ig.getCStartDate(getcycledate)
 
-	print 'Cycle start date is ' + str(startday)
-	print 'Cycle end date is ' + str(endday)
+	print('Cycle start date is ' + str(startday))
+	print('Cycle end date is ' + str(endday))
 
 	#----------- get SMA daily transactions and AL information ------------
 	driver = r"{Microsoft Access Driver (*.mdb, *.accdb)};"
@@ -113,16 +112,19 @@ if __name__=="__main__":
 	#----------- calculate sales bonus/Advancing AL sales bonus/New Business  ------------
 	Transdf['Cslt'] = Transdf['Cslt'].astype(np.int64)
 	Transdf['New Business'] = Transdf['Event Gross Amount'] * Transdf['NBRate'] * Transdf['TransType']
+	Transdf['New Business'] = Transdf['New Business'].round(2)
 	#Transdf['Sales Bonus'] = np.where(Transdf['TransType'] == 1, Transdf['Event Gross Amount'] * Transdf['SBRate'], 0.00)
 	Transdf['Sales Bonus'] = Transdf['Event Gross Amount'] * Transdf['SBRate'] * Transdf['TransType']
+	Transdf['Sales Bonus'] = Transdf['Sales Bonus'].round(2)
 	Transdf['AL Advancing Adj'] = np.where(Transdf['AdvRate'] != 0, (Transdf['Event Gross Amount'] * Transdf['AdvRate'] - Transdf['Sales Bonus']) * Transdf['TransType'], 0.00)
+	Transdf['AL Advancing Adj'] = Transdf['AL Advancing Adj'].round(2)
 	Transdf['Mark'] = np.where(Transdf['TransType'] == 0, '*', '')
 
 	#---- prepare New Business upload tab ------
 	dfnbtrans = Transdf.loc[((Transdf['TransType'] == 1) & (Transdf['New Business'] != 0)), ['Cslt', 'New Business']].copy()
 	dfnbtotal = dfnbtrans.groupby('Cslt', as_index=False)['New Business'].sum()
 	dfnbtotal = dfnbtotal.assign(Description='SMA Sales Credits ' + endday.strftime('%Y%m%d'))
-	print dfnbtotal
+	#print(dfnbtotal)
 
 	#---- prepare Sales Bonus upload file ------
 	dfsbtrans = Transdf.loc[((Transdf['TransType'] == 1) & (Transdf['Sales Bonus'] != 0)), ['Cslt', 'Sales Bonus']].copy()
@@ -140,14 +142,14 @@ if __name__=="__main__":
 	
 	colname = ['H29283N' + str(time.strftime("%Y%m%d")) + endday.strftime('%m%d%Y') + ' SMASALESBONUS']
 	dfsb = pd.DataFrame(lssb, columns=colname)	
-	print dfsb
+	print(dfsb)
 
 	#----------- Remove unrequired columns ------------
 	Transdf.drop(['TransType', 'Tenure', 'Rate', 'ALRate'], axis=1, inplace=True)
 	Transdf.rename(columns={'Event Gross Amount': 'Total Contribution'}, inplace=True)
 	Transdf = Transdf[['CycDate','Cslt','EarnedAL','Name','RO','ROName','Account Number','Event Process Date','Client Number','Client Last Name', 'Client Given Name', 'Total Contribution','Mark','NBRate','New Business','SBRate','Sales Bonus', 'AdvanceAL','AdvRate','AL Advancing Adj']]
 	Transdf.sort_values(['CycDate','Cslt', 'Client Number', 'Account Number', 'Total Contribution'], inplace=True)
-	print Transdf
+	print(Transdf)
 	
 	dfsb.to_csv(endday.strftime('%m%d%Y') + ' SMASalesBonus.prn', index=False)	#output Sales Bonus upload file
 

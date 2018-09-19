@@ -45,9 +45,9 @@ if __name__=="__main__":
 	today = date.today()	
 	startday = getCycleStartDate(today)
 	endday = getCycleEndDate(today)
-	print getQuarter(today)
-	print today.year
-	print getLastQuarterEndDate(today)
+	#print getQuarter(today)
+	#print today.year
+	#print getLastQuarterEndDate(today)
 	#print startday
 	#print endday
 	#

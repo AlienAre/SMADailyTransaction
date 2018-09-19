@@ -15,17 +15,16 @@ def getStartDate(pdate):
 #--------------------------------------------------
 		
 ## dd/mm/yyyy format
-print 'Process date is ' + str(time.strftime("%m/%d/%Y"))
-print 'Please enter the cycle end date (mm/dd/yyyy) you want to update:'
+print('Process date is ' + str(time.strftime("%m/%d/%Y")))
 
-getcycledate = datetime.datetime.strptime(raw_input(), '%m/%d/%Y')
+getcycledate = datetime.datetime.strptime(input('Please enter the cycle end date (mm/dd/yyyy) you want to update:'), '%m/%d/%Y')
 #startday = dd.getCycleStartDate(date.today())
 #endday = dd.getCycleEndDate(date.today())
 endday = getcycledate
 startday = getStartDate(getcycledate)
 
-print 'Cycle start date is ' + str(startday)
-print 'Cycle end date is ' + str(endday)
+print('Cycle start date is ' + str(startday))
+print('Cycle end date is ' + str(endday))
 
 #---------- get the updated spreadsheet and read --------
 SMAdata = pd.read_excel('F:\\3-Compensation Programs\\IIROC Compensation\\SMA, FBA Compensation\\SMADaily' + endday.strftime("%Y%m%d") + '.xlsx')
@@ -60,4 +59,4 @@ for index, row in SMAdata.iterrows():
 	cursor.close()
 conn.close()
 
-print 'database has been updated successfully'
+print('database has been updated successfully')

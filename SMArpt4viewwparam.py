@@ -16,17 +16,17 @@ def getStartDate(pdate):
 #--------------------------------------------------
 		
 ## dd/mm/yyyy format
-print 'Process date is ' + str(time.strftime("%m/%d/%Y"))
-print 'Please enter the cycle end date (mm/dd/yyyy) you want to get:'
+print('Process date is ' + str(time.strftime("%m/%d/%Y")))
+#print 'Please enter the cycle end date (mm/dd/yyyy) you want to get:'
 
-getcycledate = datetime.datetime.strptime(raw_input(), '%m/%d/%Y')
+getcycledate = datetime.datetime.strptime(input('Please enter the cycle end date (mm/dd/yyyy) you want to get:'), '%m/%d/%Y')
 #startday = dd.getCycleStartDate(date.today())
 #endday = dd.getCycleEndDate(date.today())
 endday = getcycledate
 startday = getStartDate(getcycledate)
 
-print 'Cycle start date is ' + str(startday)
-print 'Cycle end date is ' + str(endday)
+print('Cycle start date is ' + str(startday))
+print('Cycle end date is ' + str(endday))
 
 #----------- get SMA daily transactions and AL information ------------
 driver = r"{Microsoft Access Driver (*.mdb, *.accdb)};"
@@ -151,5 +151,5 @@ worksheet.set_column('Q:Q', 12, formatnum) #[Sales Bonus]
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
 
-print 'output all daily transaction to ' + 'SMADaily' + endday.strftime("%Y%m%d") + '.xlsx'
+print('output all daily transaction to ' + 'SMADaily' + endday.strftime("%Y%m%d") + '.xlsx')
 

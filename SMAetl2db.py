@@ -17,21 +17,16 @@ def getStartDate(pdate):
 #--------------------------------------------------
 
 ## dd/mm/yyyy format
-print 'Process date is ' + str(time.strftime("%m/%d/%Y"))
-print 'Please enter the cycle end date (mm/dd/yyyy) you want to process:'
+print('Process date is ' + str(time.strftime("%m/%d/%Y")))
 
 #-----------------------------------------------------
 #------- get cycle date ----------------------
-getcycledate = datetime.datetime.strptime(raw_input(), '%m/%d/%Y')
-#startday = dd.getCycleStartDate(date.today())
-#endday = dd.getCycleEndDate(date.today())
-#startday = dd.getCycleStartDate(datetime.datetime.strptime(str('2017/11/8'), '%Y/%m/%d'))
-#endday = dd.getCycleEndDate(datetime.datetime.strptime(str('2017/11/8'), '%Y/%m/%d'))
+getcycledate = datetime.datetime.strptime(input('Please enter the cycle end date (mm/dd/yyyy) you want to process:'), '%m/%d/%Y')
 endday = getcycledate
 startday = getStartDate(getcycledate)
 
-print 'Cycle start date is ' + str(startday)
-print 'Cycle end date is ' + str(endday)
+print('Cycle start date is ' + str(startday))
+print('Cycle end date is ' + str(endday))
 #---------------------------------------------
 
 #----------- backup db first ---------
@@ -51,10 +46,10 @@ sql = '''SELECT Max(tbl_SMA.CycDate) AS [CycDate] FROM tbl_SMA; '''
 Cdatedf = pd.read_sql_query(sql,conn)
 latestcycledate = Cdatedf.at[(0, 'CycDate')]
 #print type(latestcycledate)
-print 'In database, the latest cycle end date is ' + str(latestcycledate)
+print('In database, the latest cycle end date is ' + str(latestcycledate))
 if latestcycledate > endday:
-	print 'It seems that the cycle date in database is later than your cycle date, which means the transactions may already be entered into database. Please type "1", if you want to proceed:'
-	if raw_input() != '1':
+	#print('It seems that the cycle date in database is later than your cycle date, which means the transactions may already be entered into database. Please type "1", if you want to proceed:')
+	if input('It seems that the cycle date in database is later than your cycle date, which means the transactions may already be entered into database. Please type "1", if you want to proceed:') != '1':
 		sys.exit("The process is stopped")	
 #-----------------------------------------------------------------------
 
@@ -140,4 +135,4 @@ for row in SMAdata.to_records(index=False):
 	cursor.close()
 conn.close()
 
-print 'The process is completed successfully'
+print('The process is completed successfully')
